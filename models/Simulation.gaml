@@ -1,8 +1,8 @@
 /***
-* Name: MyThesis
-* Author: mpizi
+* Name: BusquedaYCaptura
+* Author: mpizi, team3
 * Description: 
-* Tags: Tag1, Tag2, TagN
+* Tags: fuga de reos
 ***/
 
 model MyThesis
@@ -12,20 +12,21 @@ global {
 	
 	
 	
-	date true_date <- #now;
-	int year_missing <- true_date.year;
-	int month_missing <- true_date.month;
-	int day_missing <- true_date.day;
-	int hour_missing <- true_date.hour;
-	int minute_missing <- true_date.minute;
-	date starting_date <- date([year_missing,month_missing,day_missing,hour_missing,minute_missing,0]); //[Year, Month, Day, Hour, Minute, Sec]
+	date true_date <- #now; // obtiene la fecha de hoy y guarda en true_date
+	int year_missing <- true_date.year; //a partir de true_date obtiene el anio
+	int month_missing <- true_date.month; //a partir de true_date obtiene el mes
+	int day_missing <- true_date.day; //a partir de true_date obtiene el día
+	int hour_missing <- true_date.hour; //a partir de true_date obtiene la hora
+	int minute_missing <- true_date.minute; //a partir de true_date obtiene los minutos
+	date starting_date <- date([year_missing,month_missing,day_missing,hour_missing,minute_missing,0]); //[Anio, mes, dia, hora, minutos, segundos]
 
 	//GIS Input//
-	//map used to filter the object to build from the OSM file according to attributes. for an exhaustive list, see: http://wiki.openstreetmap.org/wiki/Map_Features
+	//mapa utilizado para filtrar el objeto a construir a partir del archivo OSM según los atributos. para obtener una lista exhaustiva, consulte: http://wiki.openstreetmap.org/wiki/Map_Features
+	//highway: carretera
 	map filtering <- (["highway"::["primary", "secondary", "tertiary", "motorway", "living_street","residential", "unclassified"], "building"::["yes"]]);
 	
 	//OSM file to load
-	file<geometry> osmfile <-  file<geometry>(osm_file("../includes/carcelBabahoyo.osm", filtering))  ;
+	file<geometry> osmfile <-  file<geometry>(osm_file("../includes/map(5).osm", filtering))  ;
 	
 	//compute the size of the environment from the envelope of the OSM file
 	geometry shape <- envelope(osmfile);
@@ -103,6 +104,8 @@ global {
 
 	
 	init {
+		
+		write "Hola Mundo!\" ";
 		
 		if(demographic_driving != 0.0 or demographic_walking != 0.0) {
 			demographic_bool <- true;
@@ -324,7 +327,7 @@ species missing_person skills:[moving] {
 	
 	//this reflex sets the target of the missing person to either a random building or a number of Points of Interest
 	reflex run when: objective = "running" and the_target = nil {
-		
+		write "Hola Mundo!\" ";
 		if(Point_of_Interest1 != nil and flip(0.4)){
 			the_target <- Point_of_Interest1;
 		}
