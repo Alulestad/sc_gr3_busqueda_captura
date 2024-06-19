@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>Simulation_Project_ninios</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.xtext.ui.shared.xtextBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.xtext.ui.shared.xtextNature</nature>
+		<nature>msi.gama.application.gamaNature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>external/Centre_of_Thessaloniki.osm</name>
+			<type>1</type>
+			<location>C:/Users/mpizi/Downloads/Centre_of_Thessaloniki.osm</location>
+		</link>
+		<link>
+			<name>external/Syntagma.osm</name>
+			<type>1</type>
+			<location>C:/Users/mpizi/Downloads/Syntagma.osm</location>
+		</link>
+		<link>
+			<name>external/copy of Centre_of_Thessaloniki.osm</name>
+			<type>1</type>
+			<location>C:/Users/mpizi/Documents/[1] Χάρτης/Centre_of_Thessaloniki.osm</location>
+		</link>
+		<link>
+			<name>external/copy of emp1.osm</name>
+			<type>1</type>
+			<location>C:/Users/mpizi/Documents/[1] Χάρτης/emp1.osm</location>
+		</link>
+		<link>
+			<name>external/emp1.osm</name>
+			<type>1</type>
+			<location>C:/Users/mpizi/Downloads/emp1.osm</location>
+		</link>
+		<link>
+			<name>external/map(3).osm</name>
+			<type>1</type>
+			<location>C:/Users/mpizi/Downloads/map(3).osm</location>
+		</link>
+		<link>
+			<name>external/map(5).osm</name>
+			<type>1</type>
+			<location>C:/Users/mpizi/Downloads/map(5).osm</location>
+		</link>
+		<link>
+			<name>external/map(8).osm</name>
+			<type>1</type>
+			<location>C:/Users/mpizi/Downloads/map(8).osm</location>
+		</link>
+		<link>
+			<name>external/map(9).osm</name>
+			<type>1</type>
+			<location>C:/Users/mpizi/Downloads/map(9).osm</location>
+		</link>
+	</linkedResources>
+</projectDescription>
