@@ -22,20 +22,22 @@ global {
 
 	//GIS Input//
 	//mapa utilizado para filtrar el objeto a construir a partir del archivo OSM según los atributos. para obtener una lista exhaustiva, consulte: http://wiki.openstreetmap.org/wiki/Map_Features
-	//highway: carretera
+	//map es una estrucutra de datos clave-valor. highway: carretera
 	map filtering <- (["highway"::["primary", "secondary", "tertiary", "motorway", "living_street","residential", "unclassified"], "building"::["yes"]]);
 	
 	//OSM file to load
+	// file<geometry> almacena puntos, líneas y polígonos.
 	file<geometry> osmfile <-  file<geometry>(osm_file("../includes/map(5).osm", filtering))  ;
 	
 	//compute the size of the environment from the envelope of the OSM file
+	//envelope define el entordno de simulacion creando una envoltura que rodea las geometrías o superficies descritas
 	geometry shape <- envelope(osmfile);
 	
-	float step <- 1 #mn; //every step is defined as 1 minute
+	float step <- 1 #mn; //Cada paso está definido como 1 minuto
 	
 	
-	int nb_people <- 2000; //number of people in the simulation
-	int nb_missing <- 5; //number of missing people (It will always be 1 in this simulation)
+	int nb_people <- 2000; //numero de personas en la simulacion, (Policias)
+	int nb_missing <- 10; // numero de personas desaparecidas (It will always be 1 in this simulation)
 	int missing -> {length(missing_person)};
 	int days_that_is_missing update: int(time / #day);
 	int hours_that_is_missing update: int(time / #hour) mod 24;
@@ -44,14 +46,16 @@ global {
 	int current_min <- starting_date.minute update: current_date.minute; //the current minute
 	
 	
-	//variables conserning the times that people go and leave work respectively
+	//Variables concernientes a los tiempos en que la gente va y sale del trabajo respectivamente
 	int min_work_start <- 7;
 	int max_work_start <- 9;
-	int min_work_end <- 16; 
-	int max_work_end <- 18;
+	int min_work_end <- 16;  
+	int max_work_end <- 18; 
 	
 	//variables concerning the missing person
-	int time_to_rest <- 3;
+	//Variables concernientes sobre la persona desaparecida.
+	//tiempo_para_descanso
+	int time_to_rest <- 3; 
 	
 	//variables concerning the speed that the agents are traveling. Measured in km/h
 	float min_walking_speed <- 3 #km / #h;
@@ -66,30 +70,41 @@ global {
 	//variables concerning the probability of finding the missing person when near them
 	float proba_find_walking <- 0.4;
 	float proba_find_driving <- 0.2;
-	float proba_find_resting <- 0.05;
+	float proba_find_resting <- 0.05; //si está descansando
 	
-	//variables for probabilistic location of missing person
+	//Variables para la ubicación probabilística de una persona desaparecida.
 	point Point_of_Interest1 <- nil;
 	string Point_of_Interest1_name <- nil;
 	point MP_Starting_Pos <- nil;
 	string MP_Starting_Pos_name <- nil;
 	
-	int times_found<- 0;
+	
+	int times_found<- 0; //veces encontradas
 	int times_found_walking <- 0;
 	int times_found_driving <- 0;
 	int times_found_resting <- 0;
-	int close_call <-0;
+	int close_call <-0; //llamada cercana
 	
-	//bool variable for mp resting
-	//When missing person is resting it is unlikely that they will be found
+	//bool variable for mp resting // variable booleana para mp(missing person) en reposo
+	//Cuando una persona desaparecida está descansando es poco probable que la encuentren.
 	bool m_p_resting<-true;
 	
-	graph the_graph; //initialize the graph that the agents will be moving on
+	graph the_graph; //inicializar el gráfico por el que se moverán los agentes
+	//consta de nodos (vértices) y aristas (conexiones entre nodos), 
+	//es para representar una red de conexiones
+	//
 	
-	list missing_agents -> missing_person.population;
-	agent the_missing_agent -> missing_agents at 0;
+	list missing_agents -> missing_person.population;//missing_agents contendrá todas 
+	//las instancias de la especie missing_person
+	//population se crea automáticamente cuando defines una especie de agente en GAML.
+	//se utiliza para especificar una expresión que se evaluará cada 
+	//vez que se acceda al atributo. Equivalente a 'función:'
+	
+	agent the_missing_agent -> missing_agents at 0; //los agentes se crean a traves de especies.
+	//the_missing_agent obtiene el primer missing_agents, osea el de la posicion 0
 	
 	float destroy <- 0.02; // burden on road if people agent moves through it
+	//Carga en el camino si el agente de personas se mueve a través de él.
 	
 	float demographic_driving <- 0.0;
 	float demographic_walking <- 0.0;
@@ -106,6 +121,9 @@ global {
 	init {
 		
 		write "Hola Mundo!\" ";
+		write osmfile;
+		write ("missing_agents"+missing_agents);
+		//write ("the_missing_agent4"+the_missing_agent);
 		
 		if(demographic_driving != 0.0 or demographic_walking != 0.0) {
 			demographic_bool <- true;
@@ -198,10 +216,10 @@ global {
 			walking_bool <- false;			
 		}
 		
-		//the function that creates the missing person agent
-		create missing_person number: nb_missing {
+		//la función que crea el agente de persona desaparecida
+		create missing_person number: nb_missing { //se crearán nb_missing instancias de este agente.
 
-			speed <- min_speed_missing + rnd (max_speed_missing- min_speed_missing) ;		
+			speed <- min_speed_missing + rnd (max_speed_missing- min_speed_missing) ;//La velocidad se calcula como un valor aleatorio	
 			
 			
 			if (MP_Starting_Pos_name != nil){
@@ -256,6 +274,8 @@ global {
 
 //the following stops the simulation when the missing person is found
 	reflex stop_simulation when: times_found = nb_missing {
+		write ("missing_Agent"+missing_agents);
+		write ("the_missing_agent15"+the_missing_agent);
 		do pause;
 	}
 /* 	
@@ -328,6 +348,8 @@ species missing_person skills:[moving] {
 	//this reflex sets the target of the missing person to either a random building or a number of Points of Interest
 	reflex run when: objective = "running" and the_target = nil {
 		write "Hola Mundo!\" ";
+		write ("missing_agents"+missing_agents);
+		write ("the_missing_agent2"+the_missing_agent);
 		if(Point_of_Interest1 != nil and flip(0.4)){
 			the_target <- Point_of_Interest1;
 		}
