@@ -30,9 +30,9 @@ global {
 	float step <- 1 #mn; //every step is defined as 1 minute
 	
 	
-	int nb_people <- 2000; //number of people in the simulation
+	int nb_people <- 1000; //number of people in the simulation
 	int nb_fugitive <- 5; //number of fugitive people (It will always be 1 in this simulation)
-	int nb_police <- 10; // número de policías en la simulación
+	int nb_police <- 100; // número de policías en la simulación
 	int fugitive -> {length(fugitive_person)};
 	int days_that_is_fugitive update: int(time / #day);
 	int hours_that_is_fugitive update: int(time / #hour) mod 24;
@@ -64,6 +64,7 @@ global {
 	float proba_find_walking <- 0.4;
 	float proba_find_driving <- 0.2;
 	float proba_find_resting <- 0.05;
+	float proba_find_police <- 0.99; // Nueva probabilidad para policías
 	
 	//variables for probabilistic location of fugitive person
 	point Point_of_Interest1 <- nil;
@@ -451,9 +452,10 @@ species people skills:[moving] {
 	//in any of three states: 
 	//when the People Agent is a.walking, b.driving, c.resting
 	reflex fugitive_person_nearby when: agents_at_distance(4) contains_any fugitive_person {
+    
 		if(walking_bool){
 			close_call<-close_call+1;
-			write "Walking and near " + self;
+			write "Walking near " + self;
 			if(flip(proba_find_walking)){
 				ask(fugitive_person at_distance(5)) {
 					times_found <- times_found + 1;
@@ -461,12 +463,12 @@ species people skills:[moving] {
 					write "Fugitivo encontrado " + self;
 					is_fugitive <- false;				
 				}
-				write "Took a walk and stars aligned, FOUND by " + self +" Times Found " + times_found;
+				write "El ciudadano estaba caminando, FOUND by " + self +" Times Found " + times_found;
 			}
 		}
 		else if(driving_bool){
 			close_call<-close_call+1;
-			write ("Driving and near" + self);
+			write ("Driving near " + self);
 			if(flip(proba_find_driving)){
 				ask(fugitive_person at_distance(5)) {
 					times_found <- times_found + 1;
@@ -474,7 +476,7 @@ species people skills:[moving] {
 					write "Fugitivo encontrado " + self;
 					is_fugitive <- false;	
 				}
-				write "Prayers to driving gods helped, FOUND by " + self +" Times Found " + times_found;
+				write "El ciudadano estaba conduciendo, FOUND by " + self +" Times Found " + times_found;
 			}
 		}
 		else {
@@ -487,7 +489,7 @@ species people skills:[moving] {
 					write "Fugitivo encontrado " + self;	
 					is_fugitive <- false;
 				}
-				write "Quarantine is King, FOUND by " +self +" Times Found " +times_found;
+				write "El ciudadano estaba descansando, FOUND by " +self +" Times Found " +times_found;
 			}
 		}
 		
@@ -630,15 +632,17 @@ species police skills:[moving] {
         }
     }
 
-    // Nueva reflex para aumentar la probabilidad de encontrar al fugitivo si es un policía
-//    reflex drive when: (objective = "searching") {
-//        if (rnd(1.0) < proba_find_police) {
-//            times_found = times + 1;
-//            the_target <- nil; // Reset target after finding the fugitive
-//            objective <- "resting"; // Reset objective after finding the fugitive
-//            // Lógica adicional para manejar el encuentro con el fugitivo
-//        }
-//    }
+    // Reflex para aumentar la probabilidad de encontrar al fugitivo si es un policía
+    reflex find_fugitive when: agents_at_distance(4) contains_any fugitive_person {
+        if (rnd(1.0) < proba_find_police) {
+            ask(fugitive_person at_distance(4)) {
+                times_found <- times_found + 1;
+                is_fugitive <- false;
+                write "Fugitivo encontrado por la policía " + self;
+            }
+            write "Policía encontró al fugitivo " + self + " Times Found " + times_found;
+        }
+    }
 
     aspect base {
         draw circle(30) color: color border: #black;
@@ -656,10 +660,10 @@ experiment find_fugitive_person type: gui {
     parameter "Number of people agents" var: nb_people category: "GIS";
 
     parameter "Time for fugitive person to rest" var: time_to_rest category: "fugitive_Person";
-    parameter "Probability of finding ms if walking" var: proba_find_walking category: "Probabilities" min: 0.01 max: 1.0;
-    parameter "Probability of finding ms if driving" var: proba_find_driving category: "Probabilities" min: 0.01 max: 1.0;
-    parameter "Probability of finding ms while resting" var: proba_find_resting category: "Probabilities" min: 0.01 max: 1.0;
-//    parameter "Probability of finding ms by police" var: proba_find_police category: "Probabilities" min: 0.01 max: 1.0; // Nuevo parámetro
+    parameter "Probability of finding fg if walking" var: proba_find_walking category: "Probabilities" min: 0.01 max: 1.0;
+    parameter "Probability of finding fg if driving" var: proba_find_driving category: "Probabilities" min: 0.01 max: 1.0;
+    parameter "Probability of finding fg while resting" var: proba_find_resting category: "Probabilities" min: 0.01 max: 1.0;
+	parameter "Probability of finding fg by police" var: proba_find_police category: "Probabilities" min: 0.01 max: 1.0; // Nuevo parámetro
     //parameter "PoInterest for fugitive Person" var: Point_of_Interest1 category: "fugitive_Person";
     parameter "PoI building name" var: Point_of_Interest1_name category: "fugitive_Person";
     parameter "Starting Position" var: MP_Starting_Pos_name category: "fugitive_Person";
@@ -741,9 +745,9 @@ experiment find_fugitive_person type: gui {
 //20000 minutes is 13.88 days
 experiment Batch_Optimization_No_Times_Found type: batch repeat: 2 keep_seed: true until: ( (time / #day) > 4) {
     parameter "Number of People in Area" var: nb_people min:800 max:1000 step: 20;
-    //parameter "Probability of finding ms if walking" var: proba_find_walking category: "Probabilities" min: 0.01 max: 1.0 step: 0.1;
-    //parameter "Probability of finding ms if driving" var: proba_find_driving category: "Probabilities" min: 0.01 max: 1.0 step: 0.1;
-    //parameter "Probability of finding ms while resting" var: proba_find_resting category: "Probabilities" min: 0.01 max: 1.0 step: 0.1;
+    //parameter "Probability of finding fg if walking" var: proba_find_walking category: "Probabilities" min: 0.01 max: 1.0 step: 0.1;
+    //parameter "Probability of finding fg if driving" var: proba_find_driving category: "Probabilities" min: 0.01 max: 1.0 step: 0.1;
+    //parameter "Probability of finding fg while resting" var: proba_find_resting category: "Probabilities" min: 0.01 max: 1.0 step: 0.1;
     //parameter "Batch mode:" var: is_batch <- true;
     //,proba_find_walking,proba_find_driving,proba_find_resting  //2880
 
