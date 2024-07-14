@@ -22,7 +22,7 @@ global {
 	map filtering <- (["highway"::["primary", "secondary", "tertiary", "motorway", "living_street","residential", "unclassified"], "building"::["yes"]]);
 	
 	//OSM file to load
-	file<geometry> osmfile <-  file<geometry>(osm_file("../includes/mapa.osm", filtering))  ;
+	file<geometry> osmfile <-  file<geometry>(osm_file("../includes/babahoyo_0_0_2.osm", filtering))  ;
 	
 	//compute the size of the environment from the envelope of the OSM file
 	geometry shape <- envelope(osmfile);
@@ -69,7 +69,7 @@ global {
 	//variables for probabilistic location of fugitive person
 	point Point_of_Interest1 <- nil;
 	string Point_of_Interest1_name <- nil;
-	point MP_Starting_Pos <- nil;
+	point MP_Starting_Pos <- {100, 100};
 	string MP_Starting_Pos_name <- nil;
 	
 	int times_found<- 0;
@@ -198,7 +198,6 @@ global {
 
 			speed <- min_speed_fugitive + rnd (max_speed_fugitive- min_speed_fugitive) ;		
 			
-			
 			if (MP_Starting_Pos_name != nil){
 				ask building.population {
 					if (name = MP_Starting_Pos_name) {
@@ -207,7 +206,7 @@ global {
 						write MP_Starting_Pos;
 						myself.living_place <- self;
 						myself.input_flag <- true;
-						self.color <- #maroon;
+						self.color <- #gray;
 					}
 				} 
 				
@@ -276,10 +275,13 @@ global {
 		
 	}
 
-//the following stops the simulation when the fugitive person is found
-	reflex stop_simulation when: times_found = nb_fugitive {
-		do pause;
-	}
+//the following stops the simulation when the fugitive person is found or pause simulation when 10min have passed
+// 2000min simulation -> 60s real
+reflex stop_simulation when: times_found = nb_fugitive or (time / #minute) >= 20000 {
+    do pause;
+}
+
+
 /* 	
 	reflex update_graph{
         map<road,float> weights_map <- road as_map (each:: (each.destruction_coeff * each.shape.perimeter));
@@ -455,7 +457,7 @@ species people skills:[moving] {
     
 		if(walking_bool){
 			close_call<-close_call+1;
-			write "Walking near " + self;
+			write "Walking near -> " + self;
 			if(flip(proba_find_walking)){
 				ask(fugitive_person at_distance(5)) {
 					times_found <- times_found + 1;
@@ -468,7 +470,7 @@ species people skills:[moving] {
 		}
 		else if(driving_bool){
 			close_call<-close_call+1;
-			write ("Driving near " + self);
+			write ("Driving near -> " + self);
 			if(flip(proba_find_driving)){
 				ask(fugitive_person at_distance(5)) {
 					times_found <- times_found + 1;
